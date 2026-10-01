@@ -32,7 +32,15 @@ if (requested && ["it", "en", "es"].includes(requested)) {
   }
   history.replaceState(history.state, "", location.pathname + location.hash);
 }
-// The static landing text in index.html is shown on the live page only.
+// The static landing text in index.html is shown on the live page only,
+// and never next to a running session.
+watch(
+  () => live.active || !!live.stats.startedAt,
+  (session) => {
+    document.documentElement.dataset.session = session ? "on" : "off";
+  },
+  { immediate: true },
+);
 watch(
   () => route.path,
   (path) => {
@@ -51,9 +59,18 @@ const navigation = [
 ];
 watch(
   () => settings.data.language,
-  (value) => {
+  (value, previous) => {
     locale.value = ["it", "en", "es"].includes(value) ? value : "it";
     document.documentElement.lang = locale.value;
+    document.title = t("pageTitle");
+    // Changing the interface language also switches the reading voice.
+    const voiceLanguage = { it: "it-IT", en: "en-US", es: "es-ES" }[
+      locale.value as "it" | "en" | "es"
+    ];
+    if (previous && previous !== value) {
+      settings.data.voiceLanguage = voiceLanguage;
+      settings.data.voice = "";
+    }
   },
   { immediate: true },
 );
@@ -113,12 +130,22 @@ initAudio();
     <header class="topbar">
       <span class="mobile-brand"><AudioLines :size="21" /> TikTok Chat</span
       ><span class="desktop-only">{{ t("creatorWorkspace") }}</span
-      ><span
-        class="status-pill"
+      ><span class="topbar-actions"
+        ><select
+          v-model="settings.data.language"
+          class="lang-select"
+          :aria-label="t('language')"
+        >
+          <option value="it">IT</option>
+          <option value="en">EN</option>
+          <option value="es">ES</option></select
+        ><span
+          class="status-pill"
         :class="{ online: live.status === 'connected' }"
         ><span class="dot" />{{
           t(live.isDemo ? "demoBadge" : live.status)
         }}</span
+        ></span
       >
     </header>
     <main>
@@ -139,13 +166,19 @@ initAudio();
       v-for="item in [
         navigation[0]!,
         navigation[1]!,
-        navigation[2]!,
+        navigation[3]!,
         { path: '/settings', key: 'settings', icon: Settings },
       ]"
       :key="item.path"
       :to="item.path"
       ><component :is="item.icon" :size="22" />{{
-        t(item.key === "live" ? "home" : item.key)
+        t(
+          item.key === "live"
+            ? "home"
+            : item.key === "voice"
+              ? "voiceShort"
+              : item.key,
+        )
       }}</RouterLink
     >
   </nav>

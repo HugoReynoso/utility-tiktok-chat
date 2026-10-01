@@ -50,6 +50,10 @@ const sorted = computed(() =>
         : live.score(b) - live.score(a),
   ),
 );
+// Until a session exists the live page shows the three steps, not empty panels.
+const started = computed(
+  () => live.isDemo || live.active || !!live.stats.startedAt,
+);
 const duration = computed(() =>
   live.stats.startedAt
     ? `${Math.floor((now.value - live.stats.startedAt) / 3600000)}h ${Math.floor((now.value - live.stats.startedAt) / 60000) % 60}m`
@@ -79,7 +83,7 @@ function addRule() {
 }
 </script>
 <template>
-  <div class="page-heading">
+  <div class="page-heading" :class="{ compact: page === 'live' && started }">
     <div>
       <div class="eyebrow">{{ t("yourLiveSimplified") }}</div>
       <h1>
@@ -87,7 +91,10 @@ function addRule() {
       </h1>
       <p>{{ t(`${page}Description`) }}</p>
     </div>
-    <RouterLink v-if="page === 'live'" to="/statistics" class="text-link"
+    <RouterLink
+      v-if="page === 'live' && started"
+      to="/statistics"
+      class="text-link"
       >{{ t("statistics") }}<ArrowUpRight :size="17"
     /></RouterLink>
   </div>
@@ -109,10 +116,26 @@ function addRule() {
     >
       {{ t("retryAudio") }}
     </button>
+    <button
+      v-else-if="live.error && live.error !== 'invalidUsername' && !live.active"
+      class="text-link"
+      @click="live.connect"
+    >
+      {{ t("retry") }}
+    </button>
   </div>
   <template v-if="page === 'live' || page === 'chat'">
     <ConnectionPanel />
-    <div v-if="page === 'live'" class="stats-grid">
+    <ol v-if="page === 'live' && !started" class="steps">
+      <li v-for="n in 3" :key="n">
+        <span>{{ n }}</span>
+        <div>
+          <strong>{{ t(`step${n}Title`) }}</strong>
+          <p>{{ t(`step${n}Text`) }}</p>
+        </div>
+      </li>
+    </ol>
+    <div v-if="page === 'live' && started" class="stats-grid live-stats">
       <StatsCard
         :label="t('viewers')"
         :value="live.stats.viewers"
@@ -135,7 +158,10 @@ function addRule() {
         tone="green"
       />
     </div>
-    <div :class="page === 'live' ? 'live-grid' : 'full-chat'">
+    <div
+      v-if="page === 'chat' || started"
+      :class="page === 'live' ? 'live-grid' : 'full-chat'"
+    >
       <ChatPanel />
       <div v-if="page === 'live'" class="right-column">
         <section class="panel voice-summary">
@@ -341,7 +367,7 @@ function addRule() {
   ></template>
   <template v-else-if="page === 'settings'"
     ><div class="mobile-shortcuts">
-      <RouterLink to="/voice">{{ t("voice") }}</RouterLink
+      <RouterLink to="/rankings">{{ t("rankings") }}</RouterLink
       ><RouterLink to="/alerts">{{ t("alerts") }}</RouterLink
       ><RouterLink to="/rules">{{ t("rules") }}</RouterLink
       ><RouterLink to="/history">{{ t("history") }}</RouterLink>

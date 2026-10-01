@@ -3,10 +3,12 @@ import { useSettings } from "../stores/settings";
 import type { ChatMessage, LiveUser } from "../../../shared/types";
 export const audioError = ref("");
 export const voices = ref<SpeechSynthesisVoice[]>([]);
+/** Id of the chat message being read, empty when idle or reading other text. */
+export const readingId = ref("");
 export const supported =
   typeof window !== "undefined" && "speechSynthesis" in window;
 let context: AudioContext | undefined;
-let queue: string[] = [];
+let queue: { text: string; id: string }[] = [];
 let speaking = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let version = 0;
@@ -36,15 +38,20 @@ export function stopAudio() {
   version++;
   queue = [];
   speaking = false;
+  readingId.value = "";
   if (timer) clearTimeout(timer);
   if (supported) speechSynthesis.cancel();
 }
-export function speak(text: string) {
+/** Drops the message being read and moves on to the next one. */
+export function skipAudio() {
+  if (speaking && supported) speechSynthesis.cancel();
+}
+export function speak(text: string, id = "") {
   if (!supported) {
     audioError.value = "noTts";
     return;
   }
-  if (queue.length < 30) queue.push(text.slice(0, 500));
+  if (queue.length < 30) queue.push({ text: text.slice(0, 500), id });
   drain();
 }
 function drain() {
@@ -52,7 +59,9 @@ function drain() {
   const s = useSettings().data;
   speaking = true;
   const current = version;
-  const u = new SpeechSynthesisUtterance(queue.shift());
+  const item = queue.shift()!;
+  readingId.value = item.id;
+  const u = new SpeechSynthesisUtterance(item.text);
   u.lang = s.voiceLanguage;
   u.voice = voices.value.find((v) => v.voiceURI === s.voice) ?? null;
   u.rate = s.speed;
@@ -60,14 +69,17 @@ function drain() {
   u.volume = s.volume;
   const done = () => {
     if (current !== version) return;
+    readingId.value = "";
     timer = setTimeout(() => {
       speaking = false;
       drain();
     }, s.cooldown * 1000);
   };
   u.onend = done;
-  u.onerror = () => {
-    audioError.value = "audioError";
+  u.onerror = (event) => {
+    // Skipping cancels the utterance: that is not an audio failure.
+    if (event.error !== "interrupted" && event.error !== "canceled")
+      audioError.value = "audioError";
     done();
   };
   speechSynthesis.speak(u);
@@ -93,6 +105,7 @@ export function readComment(message: ChatMessage, says: string) {
     s.readUsername
       ? `${message.user.nickname} ${says}: ${message.text}`
       : message.text,
+    message.id,
   );
 }
 export function playSound(name: string) {

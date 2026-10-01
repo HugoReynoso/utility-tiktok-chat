@@ -15,6 +15,9 @@ Il sito `hugoreynoso.github.io` ha già la verifica Google, e copre anche `/util
    - `https://hugoreynoso.github.io/utility-tiktok-chat/alternativa-tikfinity/`
    - `https://hugoreynoso.github.io/utility-tiktok-chat/en/tikfinity-alternative/`
    - `https://hugoreynoso.github.io/utility-tiktok-chat/es/alternativa-tikfinity/`
+   - `https://hugoreynoso.github.io/utility-tiktok-chat/come-leggere-commenti-live-tiktok/`
+   - `https://hugoreynoso.github.io/utility-tiktok-chat/en/read-tiktok-live-comments-aloud/`
+   - `https://hugoreynoso.github.io/utility-tiktok-chat/es/leer-comentarios-live-tiktok/`
 4. Su [Bing Webmaster Tools](https://www.bing.com/webmasters) scegli **Importa da Google Search Console**: porta con sé sito e sitemap.
 
 ## 2. Repository GitHub

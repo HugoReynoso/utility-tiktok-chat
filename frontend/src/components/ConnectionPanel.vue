@@ -1,15 +1,21 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Radio, ArrowRight, LoaderCircle } from "lucide-vue-next";
+import { Radio, ArrowRight, LoaderCircle, Volume2 } from "lucide-vue-next";
 import { useSettings } from "../stores/settings";
 import { useLive } from "../stores/live";
 import { serverAwake } from "../services/warmup";
+import { speak, supported, unlockAudio } from "../services/audio";
 const { t } = useI18n();
 const settings = useSettings();
 const live = useLive();
+function testVoice() {
+  unlockAudio();
+  speak(t("testVoiceText"));
+}
 </script>
 <template>
-  <section class="connection-panel">
+  <section class="connection-panel" :class="{ active: live.status === 'connected' }"
+  >
     <div class="connection-symbol"><Radio :size="27" /></div>
     <div class="connection-copy">
       <h2>
@@ -28,7 +34,7 @@ const live = useLive();
           live.isDemo
             ? t("demoDescription")
             : live.status === "connected"
-              ? `@${live.username}`
+              ? "@" + live.username
               : live.status === "connecting" && !serverAwake
                 ? t("wakingServer")
                 : t("connectDescription")
@@ -46,9 +52,17 @@ const live = useLive();
           autocomplete="off"
           autocapitalize="none"
           spellcheck="false"
+          enterkeyhint="go"
           maxlength="25" /></label
       ><button v-if="!live.active" class="primary" type="submit">
-        {{ t(live.isDemo ? "startDemo" : "connect")
+        {{
+          t(
+            live.isDemo
+              ? "startDemo"
+              : settings.data.tts
+                ? "connectAndRead"
+                : "connect",
+          )
         }}<ArrowRight :size="18" /></button
       ><button v-else class="secondary" type="button" @click="live.disconnect">
         <LoaderCircle
@@ -58,5 +72,26 @@ const live = useLive();
         />{{ t(live.isDemo ? "pauseDemo" : "disconnect") }}
       </button>
     </form>
+    <div v-if="!live.active" class="connection-options">
+      <span><Volume2 :size="17" />{{ t("readComments") }}</span
+      ><button
+        class="switch"
+        :class="{ enabled: settings.data.tts }"
+        type="button"
+        role="switch"
+        :aria-checked="settings.data.tts"
+        :aria-label="t('ttsEnabled')"
+        @click="settings.data.tts = !settings.data.tts"
+      >
+        <span /></button
+      ><button
+        v-if="supported"
+        class="text-link"
+        type="button"
+        @click="testVoice"
+      >
+        {{ t("testVoice") }}
+      </button>
+    </div>
   </section>
 </template>

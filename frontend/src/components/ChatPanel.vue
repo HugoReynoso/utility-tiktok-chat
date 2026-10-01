@@ -7,10 +7,11 @@ import {
   Play,
   Volume2,
   ArrowDown,
+  SkipForward,
 } from "lucide-vue-next";
 import { useLive } from "../stores/live";
 import { useSettings } from "../stores/settings";
-import { unlockAudio } from "../services/audio";
+import { readingId, skipAudio, unlockAudio } from "../services/audio";
 const { t } = useI18n();
 const live = useLive();
 const settings = useSettings();
@@ -57,6 +58,7 @@ function resume() {
         v-for="message in live.messages"
         :key="message.id"
         class="chat-message"
+        :class="{ reading: message.id === readingId }"
       >
         <img
           v-if="message.user.avatar"
@@ -87,6 +89,8 @@ function resume() {
     </button>
     <div class="chat-toolbar">
       <span><Volume2 :size="17" />{{ t("readComments") }}</span
+      ><button v-if="readingId" class="text-link skip" @click="skipAudio">
+        <SkipForward :size="16" />{{ t("skip") }}</button
       ><button
         class="switch"
         :class="{ enabled: settings.data.tts }"

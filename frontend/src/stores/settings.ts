@@ -6,7 +6,7 @@ const defaults = () => ({
   username: "",
   language: "it",
   theme: "system",
-  tts: false,
+  tts: true,
   voice: "",
   voiceLanguage: "it-IT",
   speed: 1,
