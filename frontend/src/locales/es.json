@@ -34,6 +34,7 @@
   "statisticsDescription": "Todos los eventos detectados en la sesión actual.",
   "connectTitle": "Tu comunidad te espera",
   "connectDescription": "Introduce tu usuario de TikTok para conectar con un LIVE.",
+  "wakingServer": "Iniciando el servidor gratuito: la primera conexión puede tardar hasta un minuto.",
   "youAreLive": "Estás en directo",
   "username": "Usuario de TikTok",
   "usernamePlaceholder": "tu_usuario",

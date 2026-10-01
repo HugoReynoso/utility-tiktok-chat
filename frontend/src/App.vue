@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch } from "vue";
+import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
   Radio,
@@ -19,6 +20,27 @@ import { initAudio, stopAudio } from "./services/audio";
 const { t, locale } = useI18n();
 const settings = useSettings();
 const live = useLive();
+const route = useRoute();
+// Static landing pages link here with ?lang=en|es.
+const requested = new URLSearchParams(location.search).get("lang");
+if (requested && ["it", "en", "es"].includes(requested)) {
+  if (settings.data.language !== requested) {
+    settings.data.language = requested;
+    settings.data.voiceLanguage = { it: "it-IT", en: "en-US", es: "es-ES" }[
+      requested
+    ]!;
+  }
+  history.replaceState(history.state, "", location.pathname + location.hash);
+}
+// The static landing text in index.html is shown on the live page only.
+watch(
+  () => route.path,
+  (path) => {
+    document.documentElement.dataset.page =
+      path === "/" ? "live" : path.slice(1);
+  },
+  { immediate: true },
+);
 const navigation = [
   { path: "/live", key: "live", icon: Radio },
   { path: "/chat", key: "chat", icon: MessageSquare },

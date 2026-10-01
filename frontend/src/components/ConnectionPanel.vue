@@ -3,6 +3,7 @@ import { useI18n } from "vue-i18n";
 import { Radio, ArrowRight, LoaderCircle } from "lucide-vue-next";
 import { useSettings } from "../stores/settings";
 import { useLive } from "../stores/live";
+import { serverAwake } from "../services/warmup";
 const { t } = useI18n();
 const settings = useSettings();
 const live = useLive();
@@ -28,7 +29,9 @@ const live = useLive();
             ? t("demoDescription")
             : live.status === "connected"
               ? `@${live.username}`
-              : t("connectDescription")
+              : live.status === "connecting" && !serverAwake
+                ? t("wakingServer")
+                : t("connectDescription")
         }}
       </p>
     </div>

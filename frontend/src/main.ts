@@ -8,6 +8,7 @@ import {
 import App from "./App.vue";
 import Workspace from "./pages/Workspace.vue";
 import { i18n } from "./locales";
+import { wakeServer } from "./services/warmup";
 import "./style.css";
 const router = createRouter({
   history:
@@ -30,4 +31,5 @@ const router = createRouter({
   ],
   scrollBehavior: () => ({ top: 0 }),
 });
+wakeServer();
 createApp(App).use(createPinia()).use(router).use(i18n).mount("#app");

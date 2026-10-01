@@ -34,6 +34,7 @@
   "statisticsDescription": "All events detected during the current session.",
   "connectTitle": "Your community is waiting",
   "connectDescription": "Enter your TikTok username to connect to a LIVE.",
+  "wakingServer": "Starting the free server: the first connection can take up to a minute.",
   "youAreLive": "You’re live",
   "username": "TikTok username",
   "usernamePlaceholder": "your_username",
